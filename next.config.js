@@ -5,21 +5,21 @@ const path = require('path');
 const withOffline = require('next-offline')
 
 module.exports = withOffline(withCSS({
-  
+
   webpack(config, { isServer, buildId, dev }) {
     // Fixes npm packages that depend on `fs` module
     config.node = {
       fs: 'empty',
     };
-    
-    if(!isServer){
+
+    if (!isServer) {
       config.module.rules.find(({ test }) => test.test('style.css')).use.push({
         loader: 'css-purify-webpack-loader',
         options: {
           includes: ['./pages/*.js', './components/*.js'],
         },
       });
-    } 
+    }
 
     const workboxOpts = {
       clientsClaim: true,
@@ -34,6 +34,40 @@ module.exports = withOffline(withCSS({
           handler: 'networkFirst',
           options: {
             cacheName: 'html-cache',
+          },
+        },
+        {
+          urlPattern: '/users',
+          handler: 'networkFirst',
+          options: {
+            cacheName: 'html-cache',
+          },
+        },
+        {
+          urlPattern: '/photo',
+          handler: 'networkFirst',
+          options: {
+            cacheName: 'html-cache',
+          },
+        },
+        {
+          urlPattern: new RegExp('^https://jsonplaceholder.typicode.com/users'),
+          handler: 'staleWhileRevalidate',
+          options: {
+            cacheName: 'api-cache',
+            cacheableResponse: {
+              statuses: [200],
+            },
+          },
+        },
+        {
+          urlPattern: new RegExp('^https://jsonplaceholder.typicode.com/albums'),
+          handler: 'staleWhileRevalidate',
+          options: {
+            cacheName: 'api-cache',
+            cacheableResponse: {
+              statuses: [200],
+            },
           },
         },
         {

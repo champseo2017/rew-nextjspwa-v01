@@ -10,8 +10,8 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const ssrCache = new cache({
-  max: 1000, // not more than 20 results will be cached
-  maxAge: 1000 * 60 * 90, // 5 mins
+  max: 20, // not more than 20 results will be cached
+  maxAge: 1000 * 60 * 5, // 5 mins
 });
 
 app.prepare().then(() => {
@@ -21,16 +21,29 @@ app.prepare().then(() => {
     renderAndCache(req, res, '/');
   });
 
-  server.get('/posts', (req, res) => {
-    console.log(req)
-    // const queryParams = { id: req.params.id };
-    renderAndCache(req, res, '/posts');
+  server.get('/users', (req, res) => {
+    renderAndCache(req, res, '/users');
+  });
+
+  server.get('/album/:id', (req, res) => {
+    const queryParams = { id: req.params.id };
+    renderAndCache(req, res, '/album', queryParams);
+  });
+
+  server.get('/photo/:id/:title', (req, res) => {
+    let titlere = req.params.title
+    let replacetitle = titlere.replace(/[^A-Za-z0-9]/g," ")
+    const queryParams = { 
+      id: req.params.id, 
+      title: replacetitle
+    };
+    renderAndCache(req, res, '/photo', queryParams);
   });
 
   server.get('*', (req, res) => {
     const parsedUrl = parse(req.url, true)
     const { pathname } = parsedUrl
-    
+
     if (pathname === '/service-worker.js') {
       const filePath = join(__dirname, '.next', pathname);
       console.log(filePath)
